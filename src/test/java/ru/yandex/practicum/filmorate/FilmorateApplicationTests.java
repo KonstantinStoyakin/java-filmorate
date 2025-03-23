@@ -32,7 +32,7 @@ class FilmorateApplicationTests {
 	void shouldFailWhenEmailIsBlank() {
 		User user = new User();
 		user.setEmail("");
-		user.setLogin("privet-zemlya");
+		user.setLogin("privet");
 		user.setBirthday(LocalDate.of(2000, 1, 1));
 
 		Set<ConstraintViolation<User>> violations = validator.validate(user);
