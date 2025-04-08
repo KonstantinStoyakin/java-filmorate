@@ -41,7 +41,7 @@ class FilmorateApplicationTests {
 
 		ConstraintViolation<User> violation = violations.iterator().next();
 
-		assertEquals("не должно быть пустым", violation.getMessage());
+		assertEquals("must not be blank", violation.getMessage());
 		assertEquals("email", violation.getPropertyPath().toString());
 	}
 }
