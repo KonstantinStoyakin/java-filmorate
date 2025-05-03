@@ -44,11 +44,12 @@ CREATE TABLE IF NOT EXISTS friendships (
 );
 
 CREATE TABLE film_likes (
-    film_id INT NOT NULL,
-    user_id INT NOT NULL,
+    film_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
     PRIMARY KEY (film_id, user_id),
     FOREIGN KEY (film_id) REFERENCES films(id),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
 
 
