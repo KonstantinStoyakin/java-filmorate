@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS friendships (
     FOREIGN KEY (friend_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE TABLE film_likes (
+CREATE TABLE IF NOT EXISTS film_likes (
     film_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,
     PRIMARY KEY (film_id, user_id),
