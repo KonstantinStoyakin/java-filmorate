@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.UnableToFindException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -33,7 +34,10 @@ public class UserController {
 
     @PutMapping
     public User updateUser(@Valid @RequestBody User user) {
-       return userService.update(user);
+        if (user.getId() != null && user.getId() < 1) {
+            throw new UnableToFindException("Пользователь с ID " + user.getId() + " не найден.");
+        }
+        return userService.update(user);
     }
 
     @GetMapping("/{id}")
@@ -46,9 +50,9 @@ public class UserController {
         userService.addFriend(id, friendId);
     }
 
-    @DeleteMapping("/{id}/friends/{friendId}")
-    public void removeFriend(@PathVariable Long id, @PathVariable Long friendId) {
-        userService.removeFriend(id, friendId);
+    @DeleteMapping("/{userId}/friends/{friendId}")
+    public void removeFriend(@PathVariable Long userId, @PathVariable Long friendId) {
+        userService.removeFriend(userId, friendId);
     }
 
     @GetMapping("/{id}/friends")

@@ -6,9 +6,12 @@ import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -42,5 +45,11 @@ public class InMemoryFilmStorage implements FilmStorage {
     @Override
     public Optional<Film> findById(Long id) {
         return Optional.ofNullable(films.get(id));
+    }
+
+    @Override
+    public List<Film> getMostPopular(Integer count) {
+        return films.values().stream().sorted(Comparator.comparingInt(f -> -f.getLikes().size()))
+                .limit(count).collect(Collectors.toList());
     }
 }

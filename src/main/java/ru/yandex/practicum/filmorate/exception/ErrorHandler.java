@@ -6,7 +6,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +37,7 @@ public class ErrorHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleNotFound(ResourceNotFoundException e) {
-        log.warn("Объект не найден: {}", e.getMessage());
+        log.warn("Объект не найден: {}", e.getMessage(), e);
         Map<String, String> error = new HashMap<>();
         error.put("error", e.getMessage());
         return error;
@@ -57,6 +59,33 @@ public class ErrorHandler {
         e.getBindingResult().getFieldErrors().forEach(err -> {
             error.put(err.getField(), err.getDefaultMessage());
         });
+        return error;
+    }
+
+    @ExceptionHandler(UnableToFindException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleUnableToFindException(UnableToFindException e) {
+        log.warn("Не удалось найти объект: {}", e.getMessage(), e);
+        Map<String, String> error = new HashMap<>();
+        error.put("error", e.getMessage());
+        return error;
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        log.warn("Ошибка типа аргумента: {}", e.getMessage());
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Некорректный формат параметра: " + e.getName());
+        return error;
+    }
+
+    @ExceptionHandler(SQLException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleSQLException(SQLException e) {
+        log.error("Ошибка при взаимодействии с базой данных: {}", e.getMessage(), e);
+        Map<String, String> error = new HashMap<>();
+        error.put("error", "Ошибка при взаимодействии с базой данных.");
         return error;
     }
 }
