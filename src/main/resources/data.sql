@@ -10,14 +10,18 @@ WHERE NOT EXISTS (
   SELECT 1 FROM mpa WHERE mpa.id = vals.id
 );
 
-
-INSERT INTO genres (id, name) VALUES
+INSERT INTO genres (id, name)
+SELECT * FROM (VALUES
   (1, 'Комедия'),
   (2, 'Драма'),
   (3, 'Мультфильм'),
   (4, 'Триллер'),
   (5, 'Документальный'),
-  (6, 'Боевик');
+  (6, 'Боевик')
+) AS vals(id,name)
+WHERE NOT EXISTS (
+ SELECT 1 FROM genres WHERE genres.id = vals.id
+);
 
 INSERT INTO users (email, login, name, birthday) VALUES
 ('john@example.com', 'john123', 'John Doe', '1990-05-20'),
