@@ -15,7 +15,10 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @Component
@@ -40,10 +43,12 @@ public class FilmDbStorage implements FilmStorage {
         log.info("Добавлен фильм в базу: {}", film);
 
         if (film.getGenres() != null && !film.getGenres().isEmpty()) {
-            for (Genre genre : film.getGenres()) {
-                String insertGenreSql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
-                jdbcTemplate.update(insertGenreSql, film.getId(), genre.getId());
-            }
+            String insertGenreSql = "INSERT INTO film_genres (film_id, genre_id) VALUES (?, ?)";
+            jdbcTemplate.batchUpdate(insertGenreSql, film.getGenres(), film.getGenres().size(),
+                    (ps, genre) -> {
+                        ps.setLong(1, film.getId());
+                        ps.setLong(2, genre.getId());
+                    });
         }
 
         return film;
@@ -73,7 +78,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public Optional<Film> findById(Long id) {
-        String sql = "SELECT * FROM films WHERE id = ?";
+        String sql = "SELECT id, name, description, release_date, duration, mpa_id FROM films WHERE id = ?";
         return jdbcTemplate.query(sql, this::mapRowToFilm, id)
                 .stream()
                 .findFirst();
@@ -120,7 +125,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> findAll() {
-        String sql = "SELECT * FROM films";
+        String sql = "SELECT id, name, description, release_date, duration, mpa_id FROM films";
         return jdbcTemplate.query(sql, this::mapRowToFilm);
     }
 

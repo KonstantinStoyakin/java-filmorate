@@ -64,7 +64,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Optional<User> findById(Long id) {
-        String sql = "SELECT * FROM users WHERE id = ?";
+        String sql = "SELECT id, email, login, name, birthday FROM users WHERE id = ?";
         try {
             User user = jdbcTemplate.queryForObject(sql, (rs, rowNum) ->
                     new User(
@@ -82,7 +82,7 @@ public class UserDbStorage implements UserStorage {
 
     @Override
     public Collection<User> findAll() {
-        String sql = "SELECT * FROM users";
+        String sql = "SELECT id, email, login, name, birthday FROM users";
         return jdbcTemplate.query(sql, this::mapRowToUser);
     }
 

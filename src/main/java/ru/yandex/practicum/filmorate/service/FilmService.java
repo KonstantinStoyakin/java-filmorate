@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.exception.ConditionsNotMetException;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.film.FilmStorage;
 import ru.yandex.practicum.filmorate.storage.genre.GenreStorage;
@@ -19,6 +20,8 @@ import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -55,11 +58,16 @@ public class FilmService {
         mpaStorage.findById(film.getMpa().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("MPA с id " + film.getMpa().getId() + " не найден"));
 
-        if (film.getGenres() != null) {
-            film.getGenres().forEach(g ->
-                    genreStorage.findById(g.getId())
-                            .orElseThrow(() -> new ResourceNotFoundException("Жанр с id " + g.getId() + " не найден"))
-            );
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            Set<Long> genreIds = film.getGenres().stream()
+                    .map(g -> g.getId())
+                    .collect(Collectors.toSet());
+
+            List<Genre> foundGenres = genreStorage.findAllByIds(genreIds);
+
+            if (foundGenres.size() != genreIds.size()) {
+                throw new ResourceNotFoundException("Один или несколько жанров не найдены");
+            }
         }
 
         return filmStorage.addFilm(film);

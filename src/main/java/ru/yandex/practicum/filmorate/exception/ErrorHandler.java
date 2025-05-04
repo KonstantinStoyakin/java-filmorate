@@ -88,4 +88,11 @@ public class ErrorHandler {
         error.put("error", "Ошибка при взаимодействии с базой данных.");
         return error;
     }
+
+    @ExceptionHandler(NullPointerException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleNullPointerException(NullPointerException e) {
+        log.error("NullPointerException: {}", e.getMessage(), e);
+        return Map.of("error", "Внутренняя ошибка сервера.");
+    }
 }

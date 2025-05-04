@@ -28,7 +28,7 @@ public class FriendshipDbStorage implements FriendshipStorage {
 
     @Override
     public Optional<Friendship> findByUsers(Long userId, Long friendId) {
-        String sql = "SELECT * FROM friendships WHERE user_id = ? AND friend_id = ?";
+        String sql = "SELECT user_id, friend_id, status FROM friendships WHERE user_id = ? AND friend_id = ?";
         List<Friendship> list = jdbcTemplate.query(sql, (rs, rowNum) -> new Friendship(
                 rs.getLong("user_id"),
                 rs.getLong("friend_id"),
@@ -48,7 +48,7 @@ public class FriendshipDbStorage implements FriendshipStorage {
 
     @Override
     public List<Friendship> findFriendsByUser(Long userId) {
-        String sql = "SELECT * FROM friendships WHERE user_id = ? AND status = 'CONFIRMED'";
+        String sql = "SELECT user_id, friend_id, status FROM friendships WHERE user_id = ? AND status = 'CONFIRMED'";
         return jdbcTemplate.query(sql, (rs, rowNum) -> new Friendship(
                 rs.getLong("user_id"),
                 rs.getLong("friend_id"),

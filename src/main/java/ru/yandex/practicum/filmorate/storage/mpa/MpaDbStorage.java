@@ -17,14 +17,14 @@ public class MpaDbStorage implements MpaStorage {
 
     @Override
     public List<Mpa> findAll() {
-        String sql = "SELECT * FROM mpa";
+        String sql = "SELECT id, name FROM mpa";
         return jdbcTemplate.query(sql, (rs, rowNum) ->
                 new Mpa(rs.getLong("id"), rs.getString("name")));
     }
 
     @Override
     public Optional<Mpa> findById(Long id) {
-        String sql = "SELECT * FROM mpa WHERE id = ?";
+        String sql = "SELECT id, name FROM mpa WHERE id = ?";
         return jdbcTemplate.query(sql, (rs, rowNum) ->
                         new Mpa(rs.getLong("id"), rs.getString("name")), id)
                 .stream().findFirst();
