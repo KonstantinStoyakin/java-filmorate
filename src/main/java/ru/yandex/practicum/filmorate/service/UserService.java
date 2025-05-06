@@ -1,10 +1,14 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exception.ResourceNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Friendship;
+import ru.yandex.practicum.filmorate.model.FriendshipStatus;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.friendship.FriendshipStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
@@ -17,9 +21,12 @@ import java.util.stream.Collectors;
 public class UserService {
     private final UserStorage userStorage;
 
+    private final FriendshipStorage friendshipStorage;
+
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, FriendshipStorage friendshipStorage) {
         this.userStorage = userStorage;
+        this.friendshipStorage = friendshipStorage;
     }
 
     public User add(User user) {
@@ -29,8 +36,11 @@ public class UserService {
     }
 
     public User update(User user) {
-        validateUser(user);
-        findById(user.getId());
+        userStorage.findById(user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Пользователь с id " + user.getId() + " не найден"));
+        if (user.getName().isEmpty()) {
+            user.setName(user.getLogin());
+        }
         return userStorage.updateUser(user);
     }
 
@@ -56,29 +66,37 @@ public class UserService {
     }
 
     public void addFriend(Long userId, Long friendId) {
-        User user = findById(userId);
-        User friend = findById(friendId);
-        user.getFriends().add(friendId);
-        friend.getFriends().add(userId);
+        findById(userId);
+        findById(friendId);
+        friendshipStorage.addFriendship(new Friendship(userId, friendId, FriendshipStatus.CONFIRMED));
     }
 
     public void removeFriend(Long userId, Long friendId) {
-        User user = findById(userId);
-        User friend = findById(friendId);
-        user.getFriends().remove(friendId);
-        friend.getFriends().remove(userId);
+        findById(userId);
+        findById(friendId);
+
+        friendshipStorage.findByUsers(userId, friendId).ifPresent(friendship -> {
+            friendshipStorage.updateFriendship(new Friendship(userId, friendId, FriendshipStatus.DELETED));
+        });
     }
 
+
     public List<User> getFriends(Long userId) {
-        User user = findById(userId);
-        return user.getFriends().stream()
+        findById(userId);
+        return friendshipStorage.findFriendsByUser(userId).stream()
+                .map(Friendship::getFriendId)
                 .map(this::findById)
                 .collect(Collectors.toList());
     }
 
     public List<User> getCommonFriends(Long userId, Long otherId) {
-        Set<Long> friends1 = findById(userId).getFriends();
-        Set<Long> friends2 = findById(otherId).getFriends();
+        Set<Long> friends1 = friendshipStorage.findFriendsByUser(userId).stream()
+                .map(Friendship::getFriendId)
+                .collect(Collectors.toSet());
+
+        Set<Long> friends2 = friendshipStorage.findFriendsByUser(otherId).stream()
+                .map(Friendship::getFriendId)
+                .collect(Collectors.toSet());
 
         return friends1.stream()
                 .filter(friends2::contains)
